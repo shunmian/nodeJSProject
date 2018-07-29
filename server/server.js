@@ -11,11 +11,9 @@ const app = express()
 app.use(bodyParser.json())
 
 app.post('/todos', (req, res) => {
-  console.log("req body", req.body)
   const newTodo = new Todo({
     text: req.body.text
   })
-  console.log(newTodo)
   newTodo.save().then(doc=>{
     res.status(200).send(doc)
   }).catch(e=>{
