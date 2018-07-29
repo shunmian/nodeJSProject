@@ -1,34 +1,31 @@
-const { MongoClient } = require('mongodb')
+const mongoose = require('mongoose')
 
-MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) => {
-  if (err) {
-    return console.log('Unable to connect to mongoDB server')
+mongoose.Promise = global.Promise
+mongoose.connect('mongodb://localhost:27017/TodoApp', { useNewUrlParser: true })
+
+const Todo = mongoose.model('Todo', {
+  text: {
+    type: String,
+    require: true,
+    trim: true,
+    minlength: 1,
+  },
+  completed: {
+    type: Boolean,
+    default: false,
+  },
+  completedAt: {
+    type: Number,
+    default: null
   }
-  console.log('connect to mongoDB server succeeded')
+})
 
-  // db.collection('Todos').insertOne({
-  //   text: 'Something to do',
-  //   completed: false
-  // }, (err, result) => {
-  //   if (err) {
-  //     return console.log('Inserting went go', err)
-  //   }
-  //   console.log(JSON.stringify(result.ops[0]._id.getTimestamp(), undefined, 2))
-  // })
-  db.collection('Todos').find({completed: false}).toArray().then(res => {
-    console.log(JSON.stringify(res, undefined, 2))
-  })
-  .catch(e => {
-    console.log('fetch error')
-  })
+const newTodo = new Todo({
+  text: 'Run',
+})
 
-  db.collection('Todos').find().count().then(count => {
-    console.log(`Todos count: ${count}`)
-  })
-  .catch(e => {
-    console.log('fetch error')
-  })
-
-  // CRUD
-  // db.close()
+newTodo.save().then(res => {
+  console.log('Saved todo: ',res)
+}).catch(e=>{
+  console.log('Save error:', e)
 })
