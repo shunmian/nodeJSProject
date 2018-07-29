@@ -17,7 +17,7 @@ app.post('/todos', (req, res) => {
   })
   console.log(newTodo)
   newTodo.save().then(doc=>{
-    res.status(201).send(doc)
+    res.status(200).send(doc)
   }).catch(e=>{
     res.status(400).send(e)
   })
