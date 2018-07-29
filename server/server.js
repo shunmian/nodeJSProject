@@ -1,33 +1,26 @@
 const express = require('express')
-const hbs = require('hbs')
+const bodyParser = require('body-parser')
+
+const { mongoose } = require('./db/mongoose')
+const { Todo } = require('./models/todo')
+const { User } = require('./models/user')
 
 const port = process.env.PORT || 3000
 const app = express()
 
-hbs.registerPartials(__dirname + '/Views/partials')
-hbs.registerHelper('getCurrentYear', ()=> {
-  return 'ya haha'
-})
+app.use(bodyParser.json())
 
-app.set('view engine', hbs)
-app.use((req, res, next) => {
-  const log = `${new Date()}: ${req.method}, ${req.url}`
-  console.log(log)
-  next()
-})
-
-// app.use((req, res, next)=> {
-//   res.render('maintenance.hbs')
-// })
-
-app.use(express.static(__dirname + '/public'))
-
-app.get('/', (req, res) => {
-  res.status(404).send('Hello World!')
-})
-
-app.get('/about', (req, res) => {
-  res.send('Hello World!')
+app.post('/todos', (req, res) => {
+  console.log("req body", req.body)
+  const newTodo = new Todo({
+    text: req.body.text
+  })
+  console.log(newTodo)
+  newTodo.save().then(doc=>{
+    res.status(201).send(doc)
+  }).catch(e=>{
+    res.status(400).send(e)
+  })
 })
 
 app.listen(port, () => {
@@ -35,6 +28,7 @@ app.listen(port, () => {
 })
 
 module.exports.app = app
+
 
 
 
