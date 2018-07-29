@@ -46,6 +46,22 @@ app.get('/todos/:id', (req, res) => {
   })
 })
 
+app.delete('/todos/:id', (req, res) => {
+  const { id } = req.params
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send('invalid id format')
+  }
+  Todo.findByIdAndRemove(id).then(doc=>{
+    if(!doc){
+      res.status(404).send('id not existed')
+    } else {
+      res.status(200).send(doc)
+    }
+  }).catch(e=>{
+    res.status(400).send(e)
+  })
+})
+
 app.listen(port, () => {
   console.log(`Server is up on part ${port}`)
 })
