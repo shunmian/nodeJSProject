@@ -6,7 +6,7 @@ const { mongoose } = require('./db/mongoose')
 const { ObjectID } = require('mongodb')
 const { Todo } = require('./models/todo')
 const { User } = require('./models/user')
-
+const { authenticate } = require('./middleware/authenticate')
 
 
 const port = process.env.PORT || 3000
@@ -108,6 +108,13 @@ app.post('/users', (req, res) => {
     res.status(404).send(e)
   })
 })
+
+
+
+app.get('/users/me', authenticate, (req, res) => {
+  res.send(req.user)
+})
+
 
 app.listen(port, () => {
   console.log(`Server is up on part ${port}`)
