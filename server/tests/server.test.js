@@ -4,24 +4,12 @@ const { ObjectID } = require('mongodb')
 
 const { app } = require('./../server')
 const { Todo } = require('./../models/todo')
+const { User } = require('./../models/user')
+const { populateTodos, populateUsers, newTodos, newUsers } = require('./seed/seed')
 
-const newTodos = [
-  {
-    _id: new ObjectID(),
-    text: 'first todo'
-  },
-  {
-    _id: new ObjectID(),
-    text: 'second todo',
-    completed: true,
-    completedAt: 333
-  }
-]
-beforeEach(done=>{
-  Todo.remove({}).then(()=>{
-    return Todo.insertMany(newTodos)
-  }).then(()=>done())
-})
+
+beforeEach(populateTodos)
+beforeEach(populateUsers)
 
 describe('POST /todos', () => {
   it('should create a new todo', (done)=>{
@@ -168,3 +156,79 @@ describe('PATCH /todos/:id', () => {
     .end(done)
   })
 })
+
+describe('GET /users/me', () => {
+  it('should return user if authenticated', (done) => {
+    request(app)
+    .get('/users/me')
+    .set('x-auth', newUsers[0].tokens[0].token)
+    .expect(200)
+    .expect(res=>{
+      expect(res.body._id).toBe(newUsers[0]._id.toHexString())
+      expect(res.body.email).toBe(newUsers[0].email)
+    })
+    .end(done)
+  })
+
+  it('should return 401 if not authenticated', (done) => {
+    request(app)
+    .get('/users/me')
+    .expect(401)
+    .expect(res=>{
+      expect(res.body).toEqual({})
+    })
+    .end(done)
+  })
+
+})
+
+describe('Post /users', () => {
+  it('should create a user', (done) => {
+    const email = 'example@example.com'
+    const password = '123456'
+    request(app)
+    .post('/users')
+    .send({email, password})
+    .expect(200)
+    .expect(res=>{
+      expect(res.headers['x-auth']).toBeTruthy()
+      expect(res.body._id).toBeTruthy()
+      expect(res.body.email).toEqual(email)
+    })
+    .end((err)=>{
+      if(err){
+        return done(err)
+      }
+
+      User.findOne({email}).then(user=>{
+        expect(user).toBeTruthy()
+        expect(user.password).not.toBe(password)
+        done()
+      })
+    })
+  })
+
+  it('should return validation errors if request invalid', (done) => {
+    request(app)
+    .post('/users')
+    .send({
+      email: 'and',
+      password: '123'
+    })
+    .expect(400)
+    .end(done)
+  })
+
+  it('should not create user if email is already in use', (done) => {
+    request(app)
+    .post('/users')
+    .send({
+      email: newUsers[0].email,
+      password: '123'
+    })
+    .expect(400)
+    .end(done)
+  })
+
+})
+
