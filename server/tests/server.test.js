@@ -157,6 +157,7 @@ describe('PATCH /todos/:id', () => {
   })
 })
 
+
 describe('GET /users/me', () => {
   it('should return user if authenticated', (done) => {
     request(app)
@@ -228,6 +229,33 @@ describe('Post /users', () => {
     })
     .expect(400)
     .end(done)
+  })
+})
+
+describe('POST /users/login', () => {
+  it('should return user if login succesful', (done) => {
+    const user = newUsers[0]
+    request(app)
+    .post('/users/login')
+    .send({
+      email: user.email,
+      password: user.password
+    })
+    .expect(200)
+    .expect(res=>{
+      expect(res.headers['x-auth']).toBeTruthy()
+    })
+    .end((err, res) => {
+      if(err) {
+        done(err)
+      }
+      User.findById(newUsers[0]._id).then(user=>{
+        expect(user.tokens[user.tokens.length - 1].token).toEqual(res.headers['x-auth'])
+        done()
+      }).catch(e=>{
+        done(e)
+      })
+    })
   })
 
 })
