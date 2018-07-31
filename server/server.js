@@ -112,11 +112,7 @@ app.post('/users', (req, res) => {
 app.post('/users/login', (req, res) => {
   const body = _.pick(req.body, ['email', 'password'])
   User.findByCredential(body.email, body.password).then(user => {
-    const token = user.tokens[0].token
-    if(!token) {
-      return Promise.reject()
-    }
-    return Promise.resolve(token).then(token=>{
+    return user.generateAuthToken().then(token=>{
     res.header('x-auth', token).send(user)
     })
   }).catch(e => {
@@ -124,6 +120,13 @@ app.post('/users/login', (req, res) => {
   })
 })
 
+app.delete('/users/login', authenticate, (req, res) => {
+  req.user.removeToken(req.token).then(()=>{
+    req.status(200).send()
+  }, () => {
+    res.status(400).end()
+  })
+})
 
 
 app.get('/users/me', authenticate, (req, res) => {
